@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Serif, Mona_Sans, Geist } from "next/font/google";
+
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import Navbar from "@/components/Navbar";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
@@ -33,7 +35,10 @@ export default function RootLayout({
       lang="en"
       className={cn("relative", "h-full", "antialiased", ibmPlexSerif.variable, monsaSans.variable, "font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }
