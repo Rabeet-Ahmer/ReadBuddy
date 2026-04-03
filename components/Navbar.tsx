@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation";
+import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 
 const navItems = [
   {label: 'library', href: '/'},
@@ -13,6 +14,7 @@ const navItems = [
 const Navbar = () => {
 
   const pathname = usePathname();
+  const { user } = useUser()
 
   return (
     <header className="w-full fixed z-50 bg-('--bg-primary')">
@@ -32,6 +34,26 @@ const Navbar = () => {
               </Link>
             )
           })}
+
+          <Show when="signed-out">
+            <SignInButton>
+              <button className="nav-btn">Sign In</button>
+            </SignInButton>
+            <SignUpButton>
+              <button className="btn-primary text-sm !px-4 !py-2">Sign Up</button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <div className="nav-user-link">
+            <UserButton />
+            {user?.firstName && (
+              <Link href={'/subscription'} className="nav-user-name">
+                {user.firstName}
+              </Link>
+            )}
+
+            </div>
+          </Show>
         </nav>
 
       </div>

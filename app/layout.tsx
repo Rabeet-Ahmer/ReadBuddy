@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Serif, Mona_Sans, Geist } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,10 @@ export default function RootLayout({
       className={cn("relative", "h-full", "antialiased", ibmPlexSerif.variable, monsaSans.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        {children}
+        <ClerkProvider>
+          <Navbar />
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );
