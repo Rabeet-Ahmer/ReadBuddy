@@ -8,7 +8,7 @@ import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/ne
 
 const navItems = [
   {label: 'library', href: '/'},
-  {label: 'Add New', href: '/book/new'}
+  {label: 'Add New', href: '/books/new'}
 ]
 
 const Navbar = () => {
@@ -17,7 +17,7 @@ const Navbar = () => {
   const { user } = useUser()
 
   return (
-    <header className="w-full fixed z-50 bg-('--bg-primary')">
+    <header className="w-full fixed z-50 bg-(--bg-primary)">
       <div className="wrapper navbar-height py-4 flex justify-between items-center">
         <Link href={'/'} className="flex gap-0.5 items-center">
           <Image src={'/assets/logo.png'} alt="Read Buddy" width={42} height={26}/>
