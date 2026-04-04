@@ -4,6 +4,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders a label element with default utility classes and optional custom classes.
+ *
+ * @param className - Additional CSS classes to merge with the component's default utility classes
+ * @param props - Other standard HTML label attributes that are forwarded to the rendered element
+ * @returns The rendered `<label>` element with `data-slot="label"` and merged classes
+ */
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
     <label

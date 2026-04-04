@@ -3,6 +3,13 @@ import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders a styled input element that accepts all standard HTML input props.
+ *
+ * @param className - Optional additional CSS class names to merge with the component's base styles.
+ * @param type - The HTML `type` attribute for the input (e.g., "text", "email", "password").
+ * @returns A React element rendering an input with the component's base styling and all provided props applied.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive
