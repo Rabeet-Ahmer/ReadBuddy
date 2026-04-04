@@ -40,7 +40,7 @@ const Navbar = () => {
               <button className="nav-btn">Sign In</button>
             </SignInButton>
             <SignUpButton>
-              <button className="btn-primary text-sm !px-4 !py-2">Sign Up</button>
+              <button className="btn-primary text-sm px-4! py-2!">Sign Up</button>
             </SignUpButton>
           </Show>
           <Show when="signed-in">
