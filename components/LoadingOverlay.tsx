@@ -2,7 +2,7 @@
 
 const LoadingOverlay = () => {
     return (
-        <div className="loading-wrapper">
+        <div className="loading-wrapper" aria-busy="true">
             <div className="loading-shadow-wrapper bg-white">
                 <div className="loading-shadow">
                     {/* Spinning book icon */}
@@ -22,10 +22,10 @@ const LoadingOverlay = () => {
 
                     <h3 className="loading-title">Synthesizing Your Book</h3>
 
-                    <div className="loading-progress">
+                    <div className="loading-progress" role="status" aria-live="polite" aria-atomic="true">
                         <div className="loading-progress-item">
                             <span className="loading-progress-status" />
-                            <span className="text-[var(--text-secondary)]">Uploading and processing…</span>
+                            <span className="text-(--text-secondary)">Uploading and processing…</span>
                         </div>
                     </div>
                 </div>

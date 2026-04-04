@@ -20,7 +20,7 @@ export const UploadSchema = z.object({
             z.mime(ACCEPTED_IMAGE_TYPES, 'Only JPEG, PNG, or WebP images are accepted')
         )
         .optional(),
-    title: z.string().min(1, 'Title is required').max(200, 'Title must be under 200 characters'),
-    author: z.string().min(1, 'Author name is required').max(200, 'Author name must be under 200 characters'),
+    title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be under 200 characters'),
+    author: z.string().trim().min(1, 'Author name is required').max(200, 'Author name must be under 200 characters'),
     voice: z.string().min(1, 'Please select a voice').default('rachel'),
 });

@@ -45,7 +45,6 @@ const HeroSection = () => {
             width={340}
             height={255}
             className="object-contain"
-            priority
           />
         </div>
 

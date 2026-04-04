@@ -24,7 +24,7 @@ const UploadForm = () => {
     const coverInputRef = useRef<HTMLInputElement>(null)
 
     const form = useForm<BookUploadFormValues>({
-        resolver: zodResolver(UploadSchema),
+        resolver: zodResolver(UploadSchema) as any,
         defaultValues: {
             title: '',
             author: '',
@@ -82,7 +82,12 @@ const UploadForm = () => {
                                         onClick={() => pdfInputRef.current?.click()}
                                         role="button"
                                         tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && pdfInputRef.current?.click()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault()
+                                                pdfInputRef.current?.click()
+                                            }
+                                        }}
                                         aria-invalid={fieldState.invalid}
                                     >
                                         {file ? (
