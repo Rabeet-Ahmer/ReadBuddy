@@ -23,7 +23,6 @@ export const checkBookExists = async (title: string) => {
 
         return {
             exists: false,
-            data: null
         }
     } catch (e) {
         console.error('Error checking if book exists', e)
@@ -95,6 +94,25 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
 
         console.error('Deleted Book segments and book due to failure to save segments')
 
+        return {
+            success: false,
+            error: e
+        }
+    }
+}
+
+export const getAllBooks = async () => {
+    try {
+        await connectToDatabase();
+
+        const books = await Book.find().sort({ createdAt: -1 }).lean();
+
+        return {
+            success: true,
+            data: serializeData(books)
+        }
+    } catch (e) {
+        console.error('Error connecting to database', e)
         return {
             success: false,
             error: e

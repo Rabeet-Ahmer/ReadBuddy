@@ -8,17 +8,20 @@ import { Upload, ImageIcon, X } from 'lucide-react'
 import { UploadSchema } from '@/lib/zod'
 import { voiceOptions, voiceCategories, DEFAULT_VOICE } from '@/lib/constants'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import type { BookUploadFormValues } from '@/types'
+import { useAuth } from '@clerk/nextjs'
+import { toast } from 'sonner'
+import { checkBookExists, createBook, saveBookSegments } from '@/lib/actions/book.actions'
+import { useRouter } from 'next/navigation'
+import { parsePDFFile } from '@/lib/utils'
+import { upload } from '@vercel/blob/client'
 
 const UploadForm = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { userId } = useAuth();
+    const router = useRouter();
 
     const pdfInputRef = useRef<HTMLInputElement>(null)
     const coverInputRef = useRef<HTMLInputElement>(null)
@@ -29,6 +32,8 @@ const UploadForm = () => {
             title: '',
             author: '',
             voice: DEFAULT_VOICE,
+            pdf: undefined,
+            coverImage: undefined,
         },
     })
 
@@ -36,16 +41,103 @@ const UploadForm = () => {
 
     // ----- Submit -----
     const onSubmit = async (data: BookUploadFormValues) => {
+        if (!userId) return toast.error('Please login to upload books');
+        
         setIsSubmitting(true)
+
         try {
-            // TODO: implement actual upload logic
-            console.log('Form submitted:', data)
-            await new Promise((r) => setTimeout(r, 2000)) // simulate
-        } catch (err) {
-            console.error(err)
+            const bookExists = await checkBookExists(data.title);
+
+            if (bookExists.error) {
+                console.error("Database connection or check error:", bookExists.error);
+                throw new Error("Unable to connect to database. Please check your connection.");
+            }
+
+            if (bookExists.exists && bookExists.data) {
+                toast.error('Book with same title already exist.');
+                form.reset()
+                router.push(`/books/${bookExists.data.slug}`)
+                return;
+            }
+
+            const fileTitle =  data.title.replace(/\s+/g, '_').toLowerCase();
+            const pdfFile = data.pdf;
+
+            const parsePDF = await parsePDFFile(pdfFile);
+
+            if (!parsePDF.content.length) {
+                toast.error('Failed to parse PDF file. Please try again later');
+                return;
+            }
+
+            const uploadedPdfBlob = await upload(fileTitle, pdfFile, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                contentType: 'application/pdf',
+            })
+
+            let coverUrl: string;
+
+            if (data.coverImage) {
+                const coverFile = data.coverImage
+                const uploadCoverBlob = await upload(`${fileTitle}_cover.png`, coverFile, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                    contentType: coverFile.type,
+                })
+                coverUrl = uploadCoverBlob.url;
+
+            } else {
+                const response = await fetch(parsePDF.cover)
+                const blob = await response.blob()
+                const uploadCoverBlob = await upload(`${fileTitle}_cover.png`, blob, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                    contentType: 'image/png',
+                })
+                coverUrl = uploadCoverBlob.url;
+            }
+
+            const book = await createBook({
+                clerkId: userId,
+                title: data.title,
+                author: data.author,
+                persona: data.voice,
+                fileURL: uploadedPdfBlob.url,
+                fileBlobKey: uploadedPdfBlob.pathname,
+                coverURL: coverUrl,
+                fileSize: pdfFile.size
+            })
+
+            if (book.alreadyExists && book.data) {
+                toast.error('Book with same title already exist.');
+                form.reset()
+                router.push(`/books/${book.data.slug}`)
+                return;
+            }
+
+            if (!book.success) {
+                console.error("Failed to create book:", book.error);
+                throw new Error('Failed to create book in database');
+            }
+
+            const segments = await saveBookSegments(book.data._id, userId, parsePDF.content)
+            if (!segments.success) {
+                toast.error('Failed to save book segments');
+                throw new Error('Failed to save book segments');
+            }
+
+            form.reset()
+            router.push('/')
+
+        } catch (e) {
+            console.error('Error checking if book exists', e);
+            toast.error('Failed to upload book. Please try again later');
+            return;
         } finally {
             setIsSubmitting(false)
         }
+
     }
 
     return (
@@ -127,7 +219,7 @@ const UploadForm = () => {
 
                     {/* ========== Cover Image Upload ========== */}
                     <Controller
-                        name="cover"
+                        name="coverImage"
                         control={form.control}
                         render={({ field, fieldState }) => {
                             const file = field.value as File | undefined
