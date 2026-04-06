@@ -14,7 +14,7 @@ export async function POST (request: NextRequest): Promise<NextResponse> {
             onBeforeGenerateToken: async () => {
                 const {userId} = await auth()
                 if (!userId) {
-                    throw new Error('Unauthorized. User not authenicated')
+                    throw new Error('Unauthorized. User not authenticated')
                 }
                 return {
                     allowedContentTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],

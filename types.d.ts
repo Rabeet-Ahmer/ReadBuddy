@@ -68,7 +68,7 @@ export interface CreateBook {
 }
 
 export interface TextSegment {
-    text: string;
+    content: string;
     segmentIndex: number;
     pageNumber?: number;
     wordCount: number;

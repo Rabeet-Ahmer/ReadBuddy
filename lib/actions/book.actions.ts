@@ -5,6 +5,7 @@ import { CreateBook, TextSegment } from "@/types";
 import { generateSlug, serializeData } from "../utils";
 import Book from "@/database/models/book.model";
 import BookSegment from "@/database/models/bookSegment.model";
+import { auth } from "@clerk/nextjs/server";
 
 export const checkBookExists = async (title: string) => {
     try {
@@ -68,11 +69,22 @@ export const createBook = async (data: CreateBook) => {
 export const saveBookSegments = async (bookId: string, clerkId: string, segments: TextSegment[]) => {
     try {
         await connectToDatabase();
+        
+    //     const { userId } = await auth();
+    //     if (!userId) {
+    //         return { success: false, error: 'Unauthorized' };
+    //    }
+
+    //     // Verify book ownership
+    //     const book = await Book.findById(bookId).lean();
+    //     if (!book || book.clerkId !== userId) {
+    //         return { success: false, error: 'Book not found or access denied' };
+    //     }
 
         console.log('Saving Book segments')
 
-        const segmentsToSave = segments.map((s) => ({
-            ...s, bookId, clerkId 
+        const segmentsToSave = segments.map((segment) => ({
+            ...segment, content: segment.content, bookId, clerkId 
         }))
 
         await BookSegment.insertMany(segmentsToSave);
@@ -89,10 +101,13 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
     } catch (e) {
         console.error('Error saving book segments', e)
 
-        await BookSegment.deleteMany({ bookId });
-        await Book.findByIdAndDelete(bookId);
-
-        console.error('Deleted Book segments and book due to failure to save segments')
+        try {
+            await BookSegment.deleteMany({ bookId });
+            await Book.findByIdAndDelete(bookId);
+            console.log('Cleaned up Book and segments due to failure')
+        } catch (cleanupError) {
+            console.error('Failed to clean up after segment\'s save failure:', cleanupError)
+        }
 
         return {
             success: false,

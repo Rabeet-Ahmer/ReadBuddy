@@ -280,6 +280,7 @@
   /* Button utilities */
   .btn-primary {
     @apply inline-flex items-center justify-center px-6 py-3 bg-(--color-brand) hover:bg-(--color-brand-hover) text-white font-bold rounded-[10px] transition-colors;
+
     font-family: 'IBM Plex Serif', serif;
   }
   .btn-secondary {

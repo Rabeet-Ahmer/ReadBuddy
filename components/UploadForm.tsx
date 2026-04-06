@@ -241,7 +241,12 @@ const UploadForm = () => {
                                         onClick={() => coverInputRef.current?.click()}
                                         role="button"
                                         tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && coverInputRef.current?.click()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault()
+                                                coverInputRef.current?.click()
+                                            }
+                                        }}
                                         aria-invalid={fieldState.invalid}
                                     >
                                         {file ? (
