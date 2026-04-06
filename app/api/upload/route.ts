@@ -4,9 +4,11 @@ import { handleUpload, HandleUploadBody } from "@vercel/blob/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST (request: NextRequest): Promise<NextResponse> {
-    const body = (await request.json()) as HandleUploadBody;
-
+    
     try {
+
+        const body = (await request.json()) as HandleUploadBody;
+        
         const jsonResponse = await handleUpload({
             token: process.env.BLOB_READ_WRITE_TOKEN,
             body,
@@ -39,6 +41,8 @@ export async function POST (request: NextRequest): Promise<NextResponse> {
     } catch (e) {
         const message = e instanceof Error ? e.message : 'Failed to upload file';
         const status = message.includes('Unauthorized') ? 401: 500;
-        return NextResponse.json({ error: message }, { status });
+        console.error('Error uploading file: ', message)
+        const clientMessage = status === 401 ? 'Unauthorized. Please login again' : 'Failed to upload file. Please try again'
+        return NextResponse.json({ error: clientMessage }, { status });
     }
 }
