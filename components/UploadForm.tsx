@@ -128,7 +128,7 @@ const UploadForm = () => {
             }
 
             form.reset()
-            router.push('/')
+            router.push(`/books/${book.data.slug}`)
 
         } catch (e) {
             console.error('Error checking if book exists', e);
