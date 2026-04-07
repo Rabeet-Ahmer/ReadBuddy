@@ -124,7 +124,7 @@
 
   /* Layout dimensions */
   --navbar-height: 74px;
-  --background: oklch(1 0 0);
+  --background: #f8f4e9;
   --foreground: oklch(0.145 0 0);
 }
 
@@ -188,10 +188,10 @@
     @apply px-1 sm:px-3 text-sm sm:text-base font-medium flex items-center cursor-pointer text-[var(--text-primary)];
   }
   .input-reset {
-    @apply h-12 border-none lg:!text-lg shadow-none focus:outline-none focus-visible:ring-0;
+    @apply h-12 border-none lg:text-lg! shadow-none focus:outline-none focus-visible:ring-0;
   }
   .label {
-    @apply text-lg mb-1 !font-medium;
+    @apply text-lg mb-1 font-medium!;
   }
   .auth-wrapper {
     @apply max-w-7xl px-5 mx-auto w-full min-h-screen pt-20 flex flex-col items-center justify-center py-10;
@@ -234,7 +234,7 @@
     @apply animate-spin origin-center mx-auto;
   }
   .loading-title {
-    @apply text-2xl font-bold text-[var(--text-primary)];
+    @apply text-2xl font-bold text-(--text-primary);
   }
   .loading-progress {
     @apply w-full space-y-2 text-sm;
@@ -243,16 +243,16 @@
     @apply flex justify-center items-center space-x-2;
   }
   .loading-progress-status {
-    @apply w-2 h-2 text-[var(--text-secondary)] bg-[var(--success)] rounded-full animate-pulse;
+    @apply w-2 h-2 text-(--text-secondary) bg-(--success) rounded-full animate-pulse;
   }
   .select-trigger {
-    @apply !w-full !h-12 rounded-lg;
+    @apply w-full! h-12! rounded-lg;
   }
   .volume {
-    @apply !ml-auto w-4 h-4 animate-pulse text-[var(--accent-warm)];
+    @apply !ml-auto w-4 h-4 animate-pulse text-(--accent-warm);
   }
   .select-content {
-    @apply rounded-xl border border-[var(--border-subtle)] max-h-[400px] shadow-[var(--shadow-soft)];
+    @apply rounded-xl border border-(--border-subtle) max-h-[400px] shadow-(--shadow-soft);
   }
   .select-item {
     @apply hover:rounded-lg font-medium text-lg;
@@ -274,12 +274,12 @@
     box-shadow: var(--shadow-soft-lg);
   }
   .bg-brand {
-    @apply bg-[var(--accent-warm)];
+    @apply bg-(--accent-warm);
   }
 
   /* Button utilities */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold rounded-[10px] transition-colors;
+    @apply inline-flex items-center justify-center px-6 py-3 bg-(--color-brand) hover:bg-(--color-brand-hover) text-white font-bold rounded-[10px] transition-colors;
     font-family: 'IBM Plex Serif', serif;
   }
   .btn-secondary {
@@ -288,7 +288,7 @@
 
   /* Layout utilities */
   .navbar-height {
-    @apply h-[var(--navbar-height)];
+    @apply h-(--navbar-height);
   }
 
   /* Typography utilities */
