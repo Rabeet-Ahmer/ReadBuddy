@@ -7,19 +7,12 @@ import {
 } from './constants';
 
 export const UploadSchema = z.object({
-    pdf: z
-        .file()
-        .check(
-            z.maxSize(MAX_FILE_SIZE, 'PDF file must be under 50MB'),
-            z.mime(ACCEPTED_PDF_TYPES, 'Only PDF files are accepted')
-        ),
-    cover: z
-        .file()
-        .check(
-            z.maxSize(MAX_IMAGE_SIZE, 'Cover image must be under 10MB'),
-            z.mime(ACCEPTED_IMAGE_TYPES, 'Only JPEG, PNG, or WebP images are accepted')
-        )
-        .optional(),
+    pdf: z.instanceof(File, { message: "PDF file is required" })
+        .refine((file) => file.size <= MAX_FILE_SIZE, "File size must be less than 50MB")
+        .refine((file) => ACCEPTED_PDF_TYPES.includes(file.type), "Only PDF files are accepted"),
+    coverImage: z.instanceof(File).optional()
+        .refine((file) => !file || file.size <= MAX_IMAGE_SIZE, "Image size must be less than 10MB")
+        .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), "Only .jpg, .jpeg, .png and .webp formats are supported"),
     title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be under 200 characters'),
     author: z.string().trim().min(1, 'Author name is required').max(200, 'Author name must be under 200 characters'),
     voice: z.string().min(1, 'Please select a voice').default('rachel'),
