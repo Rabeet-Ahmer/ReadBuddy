@@ -178,14 +178,20 @@ export const searchBookSegments = async (bookId: string, query: string, limit: n
                 .sort({ score: { $meta: 'textScore' } })
                 .limit(limit)
                 .lean();
-        } catch {
-            // Text index may not exist — fall through to regex fallback
+        } catch (error) {
+            console.error('Text search failed:', error);
             segments = [];
         }
 
         // Fallback: regex search matching ANY keyword
         if (segments.length === 0) {
             const keywords = query.split(/\s+/).filter((k) => k.length > 2);
+            if (keywords.length === 0) {
+                return {
+                    success: true,
+                    data: [],
+                };
+            }
             const pattern = keywords.map(escapeRegex).join('|');
 
             segments = await BookSegment.find({

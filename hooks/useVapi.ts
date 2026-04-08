@@ -1,4 +1,4 @@
-import { startVoiceSession } from "@/lib/actions/session.actions";
+import { endVoiceSession, startVoiceSession } from "@/lib/actions/session.actions";
 import { ASSISTANT_ID, DEFAULT_VOICE, VOICE_SETTINGS } from "@/lib/constants";
 import { IBook, Messages } from "@/types";
 import { useAuth } from "@clerk/nextjs";
@@ -21,7 +21,7 @@ let vapi: InstanceType<typeof Vapi>
 function getVapi() {
     if (!vapi) {
         if (!process.env.NEXT_PUBLIC_VAPI_API_KEY) {
-            throw new Error('VAPI_API_KEY is not defined');
+            throw new Error('NEXT_PUBLIC_VAPI_API_KEY is not defined');
         }
 
         vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY);
@@ -97,6 +97,10 @@ export const useVapi = (book: IBook) => {
 
         } catch (e) {
             console.error('Failed to start VAPI session:', e);
+            if (sessionIdRef.current) {
+                endVoiceSession(sessionIdRef.current, 0).catch((endError) => console.error('Failed to rollback session after start failure:', endError));
+                sessionIdRef.current = null;
+            }
             setStatus('idle');
             setLimitError('Failed to start session. Please try again.');
         }
@@ -115,6 +119,14 @@ export const useVapi = (book: IBook) => {
         };
 
         const onCallEnd = () => {
+            // Persist session end to the database
+            if (sessionIdRef.current) {
+                endVoiceSession(sessionIdRef.current, durationRef.current).catch(
+                    (err) => console.error('Failed to end voice session:', err)
+                );
+                sessionIdRef.current = null;
+            }
+
             setStatus('idle');
             setCurrentMessage('');
             setCurrentUserMessage('');
@@ -187,13 +199,32 @@ export const useVapi = (book: IBook) => {
         })
 
         return () => {
-            v.removeAllListeners();
+            vapi.removeListener('call-start', onCallStart);
+            vapi.removeListener('call-end', onCallEnd);
+            vapi.removeListener('speech-start', onSpeechStart);
+            vapi.removeListener('speech-end', onSpeechEnd);
+            vapi.removeListener('message', onMessage);
+            vapi.removeListener('error', (error) => {
+                console.error('VAPI error:', error);
+                setStatus('idle');
+                setLimitError('Failed to start session. Please try again.');
+            });
         };
     }, []);
 
     
     const stop = async () => {
         isStoppingRef.current = true;
+
+        if (sessionIdRef.current) {
+            try {
+                await endVoiceSession(sessionIdRef.current, durationRef.current);
+            } catch (err) {
+                console.error('Failed to end voice session on stop:', err);
+            }
+            sessionIdRef.current = null;
+        }
+
         await getVapi().stop();
     }
 
