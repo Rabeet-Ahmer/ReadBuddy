@@ -6,6 +6,7 @@ import { escapeRegex, generateSlug, serializeData } from "../utils";
 import Book from "@/database/models/book.model";
 import BookSegment from "@/database/models/bookSegment.model";
 import mongoose from "mongoose";
+import { updateTag, cacheTag } from "next/cache";
 
 export const checkBookExists = async (title: string) => {
     try {
@@ -52,6 +53,8 @@ export const createBook = async (data: CreateBook) => {
 
         // Check Subscription limit before creating book.
         const book = await Book.create({...data, slug, totalSegments: 0});
+
+        updateTag('books-list')
 
         return {
             success: true,
@@ -117,6 +120,8 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
 }
 
 export const getAllBooks = async () => {
+    'use cache';
+    cacheTag('books-list');
     try {
         await connectToDatabase();
 
