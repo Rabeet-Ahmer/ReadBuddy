@@ -51,7 +51,17 @@ export const createBook = async (data: CreateBook) => {
             }
         }
 
-        // Check Subscription limit before creating book.
+        // Check subscription limit before creating book
+        const { checkBookLimit } = await import('@/lib/subscription');
+        const limitCheck = await checkBookLimit(data.clerkId);
+        if (!limitCheck.allowed) {
+            return {
+                success: false,
+                error: limitCheck.error,
+                limitReached: true,
+            };
+        }
+
         const book = await Book.create({...data, slug, totalSegments: 0});
 
         updateTag('books-list')

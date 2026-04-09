@@ -10,7 +10,15 @@ export const startVoiceSession = async (clerkId: string, bookId: string): Promis
     try {
         await connectToDatabase();
 
-        // Limits/Plan to see whether a session is allowed
+        // Check subscription limits before allowing session
+        const { checkSessionLimit } = await import('@/lib/subscription');
+        const limitCheck = await checkSessionLimit(clerkId);
+        if (!limitCheck.allowed) {
+            return {
+                success: false,
+                error: limitCheck.error,
+            };
+        }
 
         const session = await VoiceSession.create({
             clerkId,
@@ -23,7 +31,7 @@ export const startVoiceSession = async (clerkId: string, bookId: string): Promis
         return {
             success: true,
             sessionId: session._id.toString(),
-            // maxDurationMinutes: check.maxDurationMinutes,
+            maxDurationMinutes: limitCheck.maxDurationMinutes,
         };
     } catch (e) {
         console.error("Error starting voice session:", e);

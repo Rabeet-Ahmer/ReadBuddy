@@ -129,12 +129,27 @@ export interface EndSessionResult {
     error?: string;
 }
 
-// export interface SesionCheckResult {
-//     allowed: boolean;
-//     curretCount?: number;
-//     limit: number;
-//     plan: PlanType;
-//     currentSessionId?: string;
-//     maxDurationMinutes: number;
-//     error?: string;
-// }
+export type PlanType = 'free_user' | 'standard' | 'pro';
+
+export interface PlanLimits {
+    maxBooks: number;
+    maxSessionsPerMonth: number | null; // null = unlimited
+    maxDurationMinutes: number;
+}
+
+export interface SessionCheckResult {
+    allowed: boolean;
+    currentCount?: number;
+    limit: number | null;
+    plan: PlanType;
+    maxDurationMinutes: number;
+    error?: string;
+}
+
+export interface BookLimitCheckResult {
+    allowed: boolean;
+    currentCount?: number;
+    limit: number;
+    plan: PlanType;
+    error?: string;
+}
