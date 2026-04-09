@@ -22,11 +22,13 @@ const BookList = async () => {
   )
 }
 
+import Loading from "@/app/loading"
+
 const Page = () => {
   return (
     <main className="container wrapper">
       <HeroSection />
-      <Suspense fallback={<div className="mt-8 text-center text-gray-500">Loading books...</div>}>
+      <Suspense fallback={<Loading />}>
         <BookList />
       </Suspense>
     </main>

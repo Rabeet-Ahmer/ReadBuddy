@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { IBM_Plex_Serif, Mona_Sans, Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -39,7 +40,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
-          <Navbar />
+          <Suspense fallback={null}>
+            <Navbar />
+          </Suspense>
           {children}
           <Toaster />
         </ClerkProvider>
