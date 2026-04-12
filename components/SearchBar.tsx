@@ -25,7 +25,7 @@ const SearchBar = () => {
           params.delete("q");
         }
 
-        router.replace(`?${params.toString()}`);
+        router.replace(`?${params.toString()}`, { scroll: false });
       }, 300);
     },
     [router, searchParams],
