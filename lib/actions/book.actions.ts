@@ -150,6 +150,32 @@ export const getAllBooks = async () => {
     }
 }
 
+export const searchBooks = async (query: string) => {
+    try {
+        await connectToDatabase();
+
+        const escaped = escapeRegex(query);
+        const regex = { $regex: escaped, $options: 'i' };
+
+        const books = await Book.find({
+            $or: [{ title: regex }, { author: regex }],
+        })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return {
+            success: true,
+            data: serializeData(books),
+        };
+    } catch (e) {
+        console.error('Error searching books', e);
+        return {
+            success: false,
+            error: e,
+        };
+    }
+};
+
 export const getBookBySlug = async (slug: string) => {
     try {
         await connectToDatabase();

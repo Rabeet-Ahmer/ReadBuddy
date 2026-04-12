@@ -565,6 +565,21 @@
   .library-search-input {
     @apply flex-1 py-2 px-4 outline-none text-(--text-primary) placeholder:text-(--text-muted);
   }
+  .library-header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8;
+  }
+  .library-heading {
+    @apply text-2xl font-bold text-(--text-primary) font-serif whitespace-nowrap;
+  }
+  .search-bar {
+    @apply flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 w-full sm:max-w-xs transition-colors focus-within:border-[#663820];
+  }
+  .search-bar-icon {
+    @apply w-4 h-4 text-(--text-muted) shrink-0;
+  }
+  .search-bar-input {
+    @apply flex-1 bg-transparent outline-none text-sm text-(--text-primary) placeholder:text-(--text-muted);
+  }
   .library-books-grid {
     @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-3 md:gap-x-10 gap-y-7 md:gap-y-9;
   }
