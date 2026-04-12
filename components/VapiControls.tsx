@@ -3,8 +3,18 @@
 import { IBook } from "@/types";
 import { Mic, MicOff } from "lucide-react";
 import Image from "next/image";
-import { useVapi } from "@/hooks/useVapi";
+import { useVapi, CallStatus } from "@/hooks/useVapi";
 import Transcript from "@/components/Transcript";
+import { formatDuration } from "@/lib/utils";
+
+const STATUS_CONFIG: Record<CallStatus, { dotClass: string; label: string }> = {
+  idle: { dotClass: "vapi-status-dot-ready", label: "Ready" },
+  connecting: { dotClass: "vapi-status-dot-connecting", label: "Connecting..." },
+  starting: { dotClass: "vapi-status-dot-connecting", label: "Starting..." },
+  listening: { dotClass: "vapi-status-dot-listening", label: "Listening" },
+  thinking: { dotClass: "vapi-status-dot-thinking", label: "Thinking..." },
+  speaking: { dotClass: "vapi-status-dot-speaking", label: "Speaking" },
+};
 
 const VapiControls = ({ book }: { book: IBook }) => {
   const {
@@ -13,16 +23,28 @@ const VapiControls = ({ book }: { book: IBook }) => {
     currentMessage,
     currentUserMessage,
     duration,
+    maxDurationSeconds,
+    remainingSeconds,
+    showTimeWarning,
     limitError,
     start,
     stop,
-    clearErrors,
     isActive,
-    voice,
   } = useVapi(book);
+
+  const { dotClass, label } = STATUS_CONFIG[status];
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      {/* Limit error banner */}
+      {limitError && (
+        <div className="error-banner">
+          <div className="error-banner-content">
+            <p className="text-red-700 text-sm font-medium">{limitError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header Card */}
       <div className="vapi-header-card">
         {/* Cover + Mic */}
@@ -35,14 +57,14 @@ const VapiControls = ({ book }: { book: IBook }) => {
             className="vapi-cover-image"
           />
           <div className="vapi-mic-wrapper">
-            {status === 'thinking' && (
+            {(status === "thinking" || status === "connecting") && (
               <span className="vapi-pulse-ring" />
             )}
             <button
               type="button"
               onClick={isActive ? stop : start}
-              disabled={status === 'connecting'}
-              className={`vapi-mic-btn ${isActive ? 'vapi-mic-btn-active' : 'vapi-mic-btn-inactive'}`}
+              disabled={status === "connecting"}
+              className={`vapi-mic-btn ${isActive ? "vapi-mic-btn-active" : "vapi-mic-btn-inactive"}`}
               aria-label="Toggle microphone"
             >
               {isActive ? (
@@ -63,21 +85,40 @@ const VapiControls = ({ book }: { book: IBook }) => {
 
           {/* Badges row */}
           <div className="flex flex-wrap items-center gap-2 mt-1">
+            {/* Live status */}
             <div className="vapi-status-indicator">
-              <span className="vapi-status-dot vapi-status-dot-ready" />
-              <span className="vapi-status-text">Ready</span>
+              <span className={`vapi-status-dot ${dotClass}`} />
+              <span className="vapi-status-text">{label}</span>
             </div>
+
+            {/* Voice */}
             <div className="vapi-status-indicator">
               <span className="vapi-status-text">
                 Voice: {book.persona || "rachel"}
               </span>
             </div>
-            <div className="vapi-status-indicator">
-              <span className="vapi-status-text">0:00/15:00</span>
+
+            {/* Timer: elapsed / max */}
+            <div className={`vapi-status-indicator ${showTimeWarning ? "bg-red-50! border-red-200!" : ""}`}>
+              <span className={`vapi-status-text ${showTimeWarning ? "text-red-600!" : ""}`}>
+                {formatDuration(duration)}/{formatDuration(maxDurationSeconds)}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Time warning banner */}
+      {showTimeWarning && (
+        <div className="warning-banner">
+          <div className="warning-banner-content">
+            <span className="warning-banner-icon">&#9200;</span>
+            <span className="warning-banner-text">
+              Less than {remainingSeconds} seconds remaining — session will end automatically.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Transcript Area */}
       <div className="vapi-transcript-wrapper">

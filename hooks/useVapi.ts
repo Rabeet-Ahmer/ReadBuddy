@@ -2,9 +2,11 @@ import { endVoiceSession, startVoiceSession } from "@/lib/actions/session.action
 import { ASSISTANT_ID, DEFAULT_VOICE, VOICE_SETTINGS } from "@/lib/constants";
 import { IBook, Messages } from "@/types";
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Vapi from '@vapi-ai/web'
 import { getVoice } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export type CallStatus = 'idle' | 'connecting' | 'starting' | 'listening' | 'thinking' | 'speaking';
 
@@ -32,30 +34,27 @@ function getVapi() {
 
 export const useVapi = (book: IBook) => {
     const { userId } = useAuth();
+    const router = useRouter();
 
     const [status, setStatus] = useState<CallStatus>('idle');
     const [messages, setMessages] = useState<Messages[]>([]);
     const [currentMessage, setCurrentMessage] = useState('');
     const [currentUserMessage, setCurrentUserMessage] = useState('');
     const [duration, setDuration] = useState(0);
+    const [maxDurationSeconds, setMaxDurationSeconds] = useState<number>(15 * 60);
     const [limitError, setLimitError] = useState<string | null>(null);
 
-    const timeRef = useRef<NodeJS.Timeout | null>(null);
     const startTimeRef = useRef<NodeJS.Timeout | null>(null);
     const sessionIdRef = useRef<string | null>(null);
     const isStoppingRef = useRef<boolean>(false);
 
-    const bookRef = useLatestRef(book);
     const durationRef = useLatestRef(duration);
+    const maxDurationRef = useLatestRef(maxDurationSeconds);
     const voice = book.persona || DEFAULT_VOICE;
 
     const isActive = status === 'connecting' || status === 'starting' || status === 'listening' || status === 'thinking' || status === 'speaking';
-
-    // *TODO - Limit:
-    // const maxDurationRef = useLatestRef(limits.maxSessionMinutes * 60)
-    // const maxDurationSeconds
-    // const remainingSeconds
-    // const showTimeWarning
+    const remainingSeconds = Math.max(0, maxDurationSeconds - duration);
+    const showTimeWarning = isActive && remainingSeconds <= 60 && remainingSeconds > 0;
 
     const start = async () => {
         if (!userId) return setLimitError('Please log in to start a session');
@@ -73,6 +72,9 @@ export const useVapi = (book: IBook) => {
             }
 
             sessionIdRef.current = result.sessionId || null;
+            if (result.maxDurationMinutes) {
+                setMaxDurationSeconds(result.maxDurationMinutes * 60);
+            }
 
             const firstMessage = `Hey, good to meet you. Quick question, before we dive in: have you actually read ${book.title} yet? Or are we starting fresh?`
 
@@ -105,6 +107,31 @@ export const useVapi = (book: IBook) => {
             setLimitError('Failed to start session. Please try again.');
         }
     }
+
+    // ── Auto-stop when duration limit is reached ─────────────────────────
+    const stopAndRedirect = useCallback(async () => {
+        if (isStoppingRef.current) return;
+        isStoppingRef.current = true;
+
+        if (sessionIdRef.current) {
+            try {
+                await endVoiceSession(sessionIdRef.current, durationRef.current);
+            } catch (err) {
+                console.error('Failed to end voice session on limit:', err);
+            }
+            sessionIdRef.current = null;
+        }
+
+        await getVapi().stop();
+        toast.error('Session time limit reached. Upgrade your plan for longer sessions.');
+        router.push('/');
+    }, [router]);
+
+    useEffect(() => {
+        if (isActive && duration >= maxDurationSeconds) {
+            stopAndRedirect();
+        }
+    }, [duration, maxDurationSeconds, isActive, stopAndRedirect]);
 
     // ── VAPI event listeners ──────────────────────────────────────────────
     useEffect(() => {
@@ -242,9 +269,9 @@ export const useVapi = (book: IBook) => {
         clearErrors,
         isActive,
         voice,
-        // maxDurationSeconds,
-        // remainingSeconds,
-        // showTimeWarning
+        maxDurationSeconds,
+        remainingSeconds,
+        showTimeWarning,
     }
 }
 
